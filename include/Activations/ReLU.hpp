@@ -32,10 +32,10 @@ public:
   /**
    * Backward pass of the ReLU activation function.
    *
-   * @param[out] ddout 1*input if forward input was > 0, else 0
+   * @param[out] din 1*input if forward input was > 0, else 0
    * @param[in] dout Values on which to apply backpropagation
    */
-  void backward(Eigen::MatrixXf &ddout, const Eigen::MatrixXf &dout) override;
+  void backward(Eigen::MatrixXf &din, const Eigen::MatrixXf &dout) override;
 
   /* Print description of ReLU activation class */
   void printDescription() override;

@@ -33,11 +33,11 @@ public:
   /**
    * Backward pass of the Softmax activation function.
    *
-   * @param[out] ddout [Softmax(forward_input) * (1 - Softmax(forward_input))] *
+   * @param[out] din [Softmax(forward_input) * (I - Softmax(forward_input))] *
    * input
    * @param[in] dout Values on which to apply backpropagation
    */
-  void backward(Eigen::MatrixXf &ddout, const Eigen::MatrixXf &dout) override;
+  void backward(Eigen::MatrixXf &din, const Eigen::MatrixXf &dout) override;
 
   /* Print description of Softmax activation class */
   void printDescription() override;

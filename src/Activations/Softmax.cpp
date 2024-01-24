@@ -15,19 +15,19 @@ void Softmax::forward(Eigen::MatrixXf &out, const Eigen::MatrixXf &x) {
   _forward_input_with_softmax_applied = out;
 }
 
-void Softmax::backward(Eigen::MatrixXf &ddout, const Eigen::MatrixXf &dout) {
+void Softmax::backward(Eigen::MatrixXf &din, const Eigen::MatrixXf &dout) {
 
-  const Eigen::MatrixXf input = dout;
+  const Eigen::MatrixXf grad = dout;
 
   for (int i = 0; i < dout.rows(); ++i) {
     for (int j = 0; j < dout.cols(); ++j) {
       for (int k = 0; k < dout.cols(); ++k) {
         if (j == k) {
-          ddout(i, j) += input(i, k) *
+          din(i, j) += grad(i, k) *
                          _forward_input_with_softmax_applied(i, k) *
                          (1.f - _forward_input_with_softmax_applied(i, j));
         } else {
-          ddout(i, j) += input(i, k) *
+          din(i, j) += grad(i, k) *
                          _forward_input_with_softmax_applied(i, k) *
                          (-_forward_input_with_softmax_applied(i, j));
         }

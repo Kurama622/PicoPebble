@@ -32,10 +32,10 @@ public:
   /**
    * Backward pass of the Linear layer.
    *
-   * @param[out] ddout input * weights
+   * @param[out] din dout * weights
    * @param[in] dout Values on which to apply weights and biases.
    */
-  void backward(Eigen::MatrixXf &ddout, const Eigen::MatrixXf &dout) override;
+  void backward(Eigen::MatrixXf &din, const Eigen::MatrixXf &dout) override;
 
   /* Print description of Linear layer class */
   void printDescription() override;

@@ -26,10 +26,10 @@ void Sequential::backward(float &loss, const Eigen::MatrixXf &y,
   _loss.forward(loss, y, y_pred);
 
   // back propagation
-  Eigen::MatrixXf lossDerivative;
-  _loss.backward(lossDerivative, y, y_pred);
+  Eigen::MatrixXf grad;
+  _loss.backward(grad, y, y_pred);
   for (auto it = _model.rbegin(); it != _model.rend(); it++) {
-    (*it)->backward(lossDerivative, lossDerivative);
+    (*it)->backward(grad, grad);
   }
 }
 

@@ -23,14 +23,14 @@ void Linear::forward(Eigen::MatrixXf &out, const Eigen::MatrixXf &x) {
   }
 }
 
-void Linear::backward(Eigen::MatrixXf &ddout, const Eigen::MatrixXf &dout) {
+void Linear::backward(Eigen::MatrixXf &din, const Eigen::MatrixXf &dout) {
   // update weights and bias
   _weights -= _lr * (_forward_input.transpose() * dout);
   _bias -= _lr * dout.colwise().mean();
 
   // Calculate the gradient component for each input, which corresponds to the
   // output of the previous layer.
-  ddout = dout * _weights.transpose();
+  din = dout * _weights.transpose();
 }
 
 void Linear::printDescription() {
