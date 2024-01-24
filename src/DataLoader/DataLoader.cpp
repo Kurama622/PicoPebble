@@ -12,13 +12,13 @@ void DataLoader::load(const std::string &path, Eigen::MatrixXf &X_train,
   std::string y_train_path = path + "train_labels/";
   std::string X_test_path = path + "test_features/";
   std::string y_test_path = path + "test_labels/";
-  load_matrix(X_train_path, X_train);
-  load_matrix(y_train_path, y_train);
-  load_matrix(X_test_path, X_test);
-  load_matrix(y_test_path, y_test);
+  loadMatrix(X_train_path, X_train);
+  loadMatrix(y_train_path, y_train);
+  loadMatrix(X_test_path, X_test);
+  loadMatrix(y_test_path, y_test);
 }
 
-void DataLoader::load_matrix(const std::string &path,
+void DataLoader::loadMatrix(const std::string &path,
                              Eigen::MatrixXf &concat_matrix) {
   std::vector<std::string> part_files = listFiles(path);
 
