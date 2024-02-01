@@ -6,11 +6,13 @@
 #include "Sequential.hpp"
 #include "Softmax.hpp"
 #include "Trainer.hpp"
-#include <mpi.h>
+#include "globalState.hpp"
+#include "common.hpp"
 
 using namespace DeepLearningFramework;
 
 int main() {
+  // initialize();
   /* Generate train and test sets */
   Eigen::MatrixXf y_train, X_train, y_test, X_test;
   DataLoader::load("../data/uniform_sample_size_per_part/", X_train, y_train,
@@ -35,8 +37,7 @@ int main() {
   // model.printDescription();
 
   /* Train params */
-  float lr = 0.02f; // learning rate
-  // Update learning rate for model
+  float lr = 0.02f;
   model.setLR(lr);
   uint32_t epochs = 200, step = 1;
   constexpr auto batch_size = 64;
@@ -47,4 +48,6 @@ int main() {
   // Train model
   Trainer::trainModel<batch_size>(train_acc, test_acc, model, epochs, y_train,
                                   X_train, y_test, X_test, step);
+
+  // finalize();
 }

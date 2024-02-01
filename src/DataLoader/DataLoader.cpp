@@ -1,4 +1,7 @@
 #include "DataLoader.hpp"
+#include "common.hpp"
+#include "globalState.hpp"
+#include "mpiController.hpp"
 #include <dirent.h>
 #include <fstream>
 #include <iostream>
@@ -19,11 +22,11 @@ void DataLoader::load(const std::string &path, Eigen::MatrixXf &X_train,
 }
 
 void DataLoader::loadMatrix(const std::string &path,
-                             Eigen::MatrixXf &concat_matrix) {
+                            Eigen::MatrixXf &concat_matrix) {
   std::vector<std::string> part_files = listFiles(path);
 
   for (int i = 0; i < part_files.size(); i++) {
-    std::cout << "Reading file: " << part_files[i] << std::endl;
+    // std::cout << "Reading file: " << part_files[i] << std::endl;
     Eigen::MatrixXf matrix = readMatrixFromFile(part_files[i]);
     if (concat_matrix.rows() == 0) {
       concat_matrix.resize(matrix.rows() * part_files.size(), matrix.cols());
@@ -31,8 +34,7 @@ void DataLoader::loadMatrix(const std::string &path,
     concat_matrix.block(matrix.rows() * i, 0, matrix.rows(), matrix.cols()) =
         matrix;
   }
-
-  std::cout << "concat Matrix:" << std::endl << concat_matrix << std::endl;
+  // std::cout << "concat Matrix:" << std::endl << concat_matrix << std::endl;
 }
 
 Eigen::MatrixXf DataLoader::readMatrixFromFile(const std::string &filename) {
@@ -68,25 +70,57 @@ Eigen::MatrixXf DataLoader::readMatrixFromFile(const std::string &filename) {
 }
 
 std::vector<std::string> DataLoader::listFiles(const std::string &path) {
-  std::vector<std::string> files;
+  std::vector<std::string> local_files;
+  int64_t file_count = 0;
+  std::vector<int64_t> file_ranks;
   DIR *dir;
   struct dirent *entry;
 
-  dir = opendir(path.c_str());
-  if (dir == nullptr) {
-    std::cerr << "Could not open path: " << path << std::endl;
-    return files;
+  MPIController &global_controller = globalController();
+  int mpi_rank = global_controller.mpiRank();
+  int mpi_size = global_controller.mpiSize();
+
+  if (mpi_rank == 0) {
+    dir = opendir(path.c_str());
+    if (dir == nullptr) {
+      std::cerr << "Could not open path: " << path << std::endl;
+      return local_files;
+    }
+
+    while ((entry = readdir(dir)) != nullptr) {
+      if (entry->d_type == DT_REG && entry->d_name[0] != '.') {
+        file_ranks.emplace_back(file_count);
+        file_count++;
+      }
+    }
+    closedir(dir);
   }
 
-  while ((entry = readdir(dir)) != nullptr) {
-    if (entry->d_type == DT_REG && entry->d_name[0] != '.') {
-      std::string filename = entry->d_name;
-      if (filename.rfind("part", 0) == 0) {
-        files.push_back(path + filename);
-      }
+  int counts[mpi_size];
+  if (mpi_rank == 0) {
+    for (int i = 0; i < mpi_size; i++) {
+      counts[i] = file_count / mpi_size;
+    }
+
+    int remainder = file_count % mpi_size;
+
+    for (int i = 0; i < remainder; i++) {
+      counts[i]++;
     }
   }
 
-  closedir(dir);
-  return files;
+  int local_count;
+
+  global_controller.mpiScatter(counts, 1, local_count, 1, 0);
+  std::vector<int64_t> local_file_ranks(local_count);
+  int ret = global_controller.mpiScatterv(file_ranks, counts, local_file_ranks,
+                                          local_count, 0);
+  std::cout << "rank " << mpi_rank << " get file rank: ";
+  for (auto &rank : local_file_ranks) {
+    local_files.emplace_back(path + "part-" + formatString(rank));
+    std::cout << rank << " ";
+  }
+  std::cout << std::endl;
+
+  return local_files;
 }
