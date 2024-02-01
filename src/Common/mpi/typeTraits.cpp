@@ -1,4 +1,4 @@
-#include "typeTraits.hpp"
+#include "mpi/typeTraits.hpp"
 #include <mpi.h>
 
 using namespace DeepLearningFramework;

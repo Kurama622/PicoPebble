@@ -15,7 +15,6 @@ include_directories(${MPI_INCLUDE_PATH})
 include_directories(
     ${PROJECT_SOURCE_DIR}/include
     ${PROJECT_SOURCE_DIR}/include/Common
-    ${PROJECT_SOURCE_DIR}/include/Common/mpi
     ${PROJECT_SOURCE_DIR}/include/Activations
     ${PROJECT_SOURCE_DIR}/include/DataLoader
     ${PROJECT_SOURCE_DIR}/include/Layers

@@ -1,7 +1,7 @@
 #include "DataLoader.hpp"
 #include "common.hpp"
 #include "globalState.hpp"
-#include "mpiController.hpp"
+#include "mpi/mpiController.hpp"
 #include <dirent.h>
 #include <fstream>
 #include <iostream>
@@ -26,7 +26,6 @@ void DataLoader::loadMatrix(const std::string &path,
   std::vector<std::string> part_files = listFiles(path);
 
   for (int i = 0; i < part_files.size(); i++) {
-    // std::cout << "Reading file: " << part_files[i] << std::endl;
     Eigen::MatrixXf matrix = readMatrixFromFile(part_files[i]);
     if (concat_matrix.rows() == 0) {
       concat_matrix.resize(matrix.rows() * part_files.size(), matrix.cols());
@@ -34,7 +33,6 @@ void DataLoader::loadMatrix(const std::string &path,
     concat_matrix.block(matrix.rows() * i, 0, matrix.rows(), matrix.cols()) =
         matrix;
   }
-  // std::cout << "concat Matrix:" << std::endl << concat_matrix << std::endl;
 }
 
 Eigen::MatrixXf DataLoader::readMatrixFromFile(const std::string &filename) {
@@ -115,12 +113,10 @@ std::vector<std::string> DataLoader::listFiles(const std::string &path) {
   std::vector<int64_t> local_file_ranks(local_count);
   int ret = global_controller.mpiScatterv(file_ranks, counts, local_file_ranks,
                                           local_count, 0);
-  std::cout << "rank " << mpi_rank << " get file rank: ";
+
   for (auto &rank : local_file_ranks) {
     local_files.emplace_back(path + "part-" + formatString(rank));
-    std::cout << rank << " ";
   }
-  std::cout << std::endl;
 
   return local_files;
 }

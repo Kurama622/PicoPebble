@@ -1,7 +1,7 @@
 #pragma once
 
 #include "globalState.hpp"
-#include "mpiController.hpp"
+#include "mpi/mpiController.hpp"
 #include <iomanip>
 #include <mpi.h>
 #include <sstream>

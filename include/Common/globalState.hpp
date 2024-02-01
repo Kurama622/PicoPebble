@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mpiController.hpp"
+#include "mpi/mpiController.hpp"
 
 namespace DeepLearningFramework {
 inline static MPIController &globalController() {
