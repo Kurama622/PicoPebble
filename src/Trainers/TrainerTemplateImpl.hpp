@@ -18,7 +18,6 @@ void Trainer::trainModel(std::vector<float> train_acc,
                          const Eigen::MatrixXf &X_test, uint32_t step) {
 
   uint32_t batch_num = X_train.rows() / batch_size;
-  std::cout << "batch_num: " << batch_num << std::endl;
 
   // set the flag for stopping synchronization parameters.
   if (globalSyncStep()) {
