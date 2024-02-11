@@ -1,6 +1,8 @@
 #pragma once
 
 #include <mpi.h>
+#include <stdint.h>
+
 namespace DeepLearningFramework {
 template <typename T> struct MPIDataTypeTrait {
   static MPI_Datatype mpi_type;
@@ -11,6 +13,10 @@ template <> struct MPIDataTypeTrait<int> {
 };
 
 template <> struct MPIDataTypeTrait<int64_t> {
+  static MPI_Datatype mpi_type;
+};
+
+template <> struct MPIDataTypeTrait<uint32_t> {
   static MPI_Datatype mpi_type;
 };
 

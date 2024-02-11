@@ -1,7 +1,7 @@
 #include "DataLoader.hpp"
-#include "common.hpp"
-#include "globalState.hpp"
-#include "mpi/mpiController.hpp"
+#include "Common.hpp"
+#include "GlobalState.hpp"
+#include "mpi/MpiController.hpp"
 #include <dirent.h>
 #include <fstream>
 #include <iostream>
@@ -15,6 +15,7 @@ void DataLoader::load(const std::string &path, Eigen::MatrixXf &X_train,
   std::string y_train_path = path + "train_labels/";
   std::string X_test_path = path + "test_features/";
   std::string y_test_path = path + "test_labels/";
+  loadMatrix(y_test_path, y_test);
   loadMatrix(X_train_path, X_train);
   loadMatrix(y_train_path, y_train);
   loadMatrix(X_test_path, X_test);

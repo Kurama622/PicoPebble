@@ -6,21 +6,16 @@
 #include "Sequential.hpp"
 #include "Softmax.hpp"
 #include "Trainer.hpp"
-#include "globalState.hpp"
-#include "common.hpp"
+#include "GlobalState.hpp"
+#include "Common.hpp"
 
 using namespace DeepLearningFramework;
 
 int main() {
-  // initialize();
-  /* Generate train and test sets */
-  Eigen::MatrixXf y_train, X_train, y_test, X_test;
-  DataLoader::load("../data/uniform_sample_size_per_part/", X_train, y_train,
-                   X_test, y_test);
-
+  std::vector<int> layers_size = {2, 10, 10, 2};
+  initialize(layers_size);
   /* Model creation */
   std::vector<Module *> layers;
-  std::vector<int> layers_size = {2, 10, 10, 2};
   const int layers_num = layers_size.size();
   for (int i = 1; i < layers_num; ++i) {
     layers.emplace_back(new Layers::Linear(layers_size[i - 1], layers_size[i]));
@@ -30,6 +25,11 @@ int main() {
       layers.emplace_back(new Activations::ReLU());
     }
   }
+
+  /* Generate train and test sets */
+  Eigen::MatrixXf y_train, X_train, y_test, X_test;
+  DataLoader::load("../data/uniform_sample_size_per_part/", X_train, y_train,
+                   X_test, y_test);
 
   Losses::MSE mseLoss;
 
@@ -49,5 +49,5 @@ int main() {
   Trainer::trainModel<batch_size>(train_acc, test_acc, model, epochs, y_train,
                                   X_train, y_test, X_test, step);
 
-  // finalize();
+  finalize();
 }

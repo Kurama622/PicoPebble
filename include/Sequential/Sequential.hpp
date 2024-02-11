@@ -8,6 +8,7 @@
 #include "Module.hpp"
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 namespace DeepLearningFramework {
@@ -35,7 +36,7 @@ public:
    * @param[in/out] x data on which to apply the model (all layers in sequence).
    * Modified with neural network result
    */
-  void forward(Eigen::MatrixXf &x);
+  void forward(Eigen::MatrixXf &x, const std::string &mode = "train");
 
   /**
    * Calculate loss and apply backward pass for each layer in reverse order.

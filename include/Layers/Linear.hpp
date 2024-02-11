@@ -4,9 +4,8 @@
 
 #pragma once
 
+#include "GlobalState.hpp"
 #include "Module.hpp"
-
-#include <iostream>
 
 namespace DeepLearningFramework {
 namespace Layers {
@@ -73,9 +72,15 @@ private:
   Eigen::MatrixXf _forward_input;
   int _input_size = -1;
   int _output_size = -1;
-  Eigen::MatrixXf _weights;
-  Eigen::MatrixXf _bias;
+  // Eigen::MatrixXf _weights;
+  // Eigen::MatrixXf _bias;
+  Eigen::MatrixXf *_weights;
+  Eigen::MatrixXf *_bias;
+  // Eigen::MatrixXf _weights = globalState().getWeights(_layer_rank);
+  // Eigen::MatrixXf _bias = globalState().getBias(_layer_rank);
   float _lr = 0.01f;
+  int _layer_rank;
+  static int _layer_count;
 };
 }; // namespace Layers
 }; // namespace DeepLearningFramework

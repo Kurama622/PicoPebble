@@ -26,6 +26,6 @@ private:
   static Eigen::MatrixXf readMatrixFromFile(const std::string &filename);
   static std::vector<std::string> listFiles(const std::string &path);
   static void loadMatrix(const std::string &path,
-                          Eigen::MatrixXf &concat_matrix);
+                         Eigen::MatrixXf &concat_matrix);
 };
 }; // namespace DeepLearningFramework

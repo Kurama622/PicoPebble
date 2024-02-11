@@ -3,6 +3,7 @@
  */
 
 #include "Sequential.hpp"
+#include "Common.hpp"
 
 #include <iostream>
 
@@ -13,12 +14,17 @@ Sequential::Sequential(std::vector<Module *> &model, Losses::MSE loss) {
   _loss = loss;
 }
 
-void Sequential::forward(Eigen::MatrixXf &x) {
+void Sequential::forward(Eigen::MatrixXf &x, const std::string& mode) {
   std::vector<Module *>::iterator it;
+
+  if (mode == "train") {
+    PullParametersStep(globalSyncStep());
+  }
 
   for (it = _model.begin(); it != _model.end(); it++)
     (*it)->forward(x, x);
 }
+
 
 void Sequential::backward(float &loss, const Eigen::MatrixXf &y,
                           Eigen::MatrixXf &y_pred) {
@@ -28,8 +34,12 @@ void Sequential::backward(float &loss, const Eigen::MatrixXf &y,
   // back propagation
   Eigen::MatrixXf grad;
   _loss.backward(grad, y, y_pred);
+  int tag = 0;
+
   for (auto it = _model.rbegin(); it != _model.rend(); it++) {
+    PushGradients(grad, tag);
     (*it)->backward(grad, grad);
+    tag++;
   }
 }
 
