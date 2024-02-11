@@ -33,13 +33,6 @@ public:
     }
   }
 
-  void initGlobalGrads() {
-    const int layers_num = _layers_size.size();
-    _global_grads.reserve(layers_num);
-  }
-
-  std::vector<int> getDoneRanks() { return _done_ranks; }
-
   void setWeights(Eigen::MatrixXf &weights, const int &layer_rank) {
     _global_weigths[layer_rank] = weights;
   }
@@ -55,10 +48,6 @@ public:
     }
   }
 
-  void setDoneStatus(const bool &done) { _done = done; }
-
-  bool getDoneStatus() { return _done; }
-
   Eigen::MatrixXf &getWeights(const int &layer_rank) {
     return _global_weigths[layer_rank];
   }
@@ -67,17 +56,9 @@ public:
     return _global_bias[layer_rank];
   }
 
-  Eigen::MatrixXf &getGrads(const int &layer_rank) {
-    return _global_grads[layer_rank];
-  }
-
 private:
   std::vector<Eigen::MatrixXf> _global_weigths;
   std::vector<Eigen::MatrixXf> _global_bias;
-  std::vector<Eigen::MatrixXf> _global_grads;
-  std::vector<int>
-      _done_ranks; // master永远最后完成（每个part样本量一样的情况下）
-  bool _done = false;
   std::vector<int> _layers_size;
 };
 
