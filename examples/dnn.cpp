@@ -28,7 +28,9 @@ int main() {
 
   /* Generate train and test sets */
   Eigen::MatrixXf y_train, X_train, y_test, X_test;
-  DataLoader::load("../data/uniform_sample_size_per_part/", X_train, y_train,
+  // std::string data_path = "../data/iris/";
+  std::string data_path = "../data/uniform_sample_size_per_part/";
+  DataLoader::load(data_path, X_train, y_train,
                    X_test, y_test);
 
   Losses::MSE mseLoss;
@@ -37,16 +39,17 @@ int main() {
   // model.printDescription();
 
   /* Train params */
-  float lr = 0.02f;
+  float lr = 0.002f;
   model.setLR(lr);
   uint32_t epochs = 200, step = 1;
   constexpr auto batch_size = 64;
+  constexpr auto feature_dim = 2;
 
   // number of train and test samples
   std::vector<float> train_acc, test_acc;
 
   // Train model
-  Trainer::trainModel<batch_size>(train_acc, test_acc, model, epochs, y_train,
+  Trainer::trainModel<batch_size, feature_dim>(train_acc, test_acc, model, epochs, y_train,
                                   X_train, y_test, X_test, step);
 
   finalize();

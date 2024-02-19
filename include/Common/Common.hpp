@@ -49,7 +49,7 @@ private:
 };
 
 inline int &globalSyncStep() {
-  static int global_sync_step = 400;
+  static int global_sync_step = 0;
   return global_sync_step;
 }
 
@@ -80,7 +80,7 @@ inline void pullParameters() {
   MPIController &global_controller = globalController();
 
   const int layers_num = globalState().getLayersNum();
-  for (int i = 0; i < layers_num; i++) {
+  for (int i = 0; i < layers_num - 1; i++) {
     // weight
     Eigen::MatrixXf &weights_mat = globalState().getWeights(i);
     int count = weights_mat.rows() * weights_mat.cols();

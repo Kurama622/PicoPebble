@@ -39,7 +39,7 @@ public:
    * @param[in] step display loss and metrics every N epochs
    * (default N=1)
    */
-  template <uint32_t batch_size>
+  template <uint32_t batch_size, uint32_t feature_dim>
   static void
   trainModel(std::vector<float> train_acc, std::vector<float> test_acc,
              Sequential &model, uint32_t epochs, const Eigen::MatrixXf &y_train,

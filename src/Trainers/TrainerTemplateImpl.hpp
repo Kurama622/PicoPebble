@@ -9,7 +9,17 @@
 
 using namespace DeepLearningFramework;
 
-template <uint32_t batch_size>
+inline Eigen::MatrixXf oneHotEncoding(const Eigen::MatrixXf& input) {
+    int n = input.rows(); // 输入矩阵的行数
+    int N_classes = input.maxCoeff() + 1;
+    Eigen::MatrixXf one_hot = Eigen::MatrixXf::Zero(n, N_classes);
+    for (int i = 0; i < n; ++i) {
+        one_hot(i, static_cast<int>(input(i))) = 1.0;
+    }
+    return one_hot;
+}
+
+template <uint32_t batch_size, uint32_t feature_dim>
 void Trainer::trainModel(std::vector<float> train_acc,
                          std::vector<float> test_acc, Sequential &model,
                          uint32_t epochs, const Eigen::MatrixXf &y_train,
@@ -43,9 +53,10 @@ void Trainer::trainModel(std::vector<float> train_acc,
       float batch_loss = 0.f;
       globalTrainStatus().setStatus(i, batch_idx);
       Eigen::MatrixXf X_batch =
-          X_train.block<batch_size, 2>(batch_idx * batch_size, 0);
+          X_train.block<batch_size, feature_dim>(batch_idx * batch_size, 0);
       Eigen::MatrixXf y_batch =
-          y_train.block<batch_size, 2>(batch_idx * batch_size, 0);
+          y_train.block<batch_size, 1>(batch_idx * batch_size, 0);
+      y_batch = oneHotEncoding(y_batch);
 
       model.forward(X_batch);
       model.backward(batch_loss, y_batch, X_batch);
