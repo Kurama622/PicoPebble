@@ -17,6 +17,8 @@
 
 namespace DeepLearningFramework {
 
+enum TrainMode { SYNC, ASYNC };
+
 template <typename F, typename... Args> struct invoke_result {
   using type = decltype(std::declval<F>()(std::declval<TrainStatus>(),
                                           std::declval<Args>()...));
@@ -157,9 +159,9 @@ inline GlobalState &globalState() {
   return global_state;
 }
 
-inline bool &globalIsSyncMode() {
-  static bool global_is_sync_mode = true;
-  return global_is_sync_mode;
+inline TrainMode &globalTrainMode() {
+  static TrainMode global_train_mode = SYNC;
+  return global_train_mode;
 }
 
 } // namespace DeepLearningFramework

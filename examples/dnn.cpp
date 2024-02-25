@@ -12,6 +12,9 @@
 using namespace DeepLearningFramework;
 
 int main() {
+  // train mode: SYNC | ASYNC
+  globalTrainMode() = SYNC;
+
   std::vector<int> layers_size = {4, 10, 10, 3}; // iris
   // std::vector<int> layers_size = {2, 10, 10, 2}; // uniform_sample_size_per_part
   initialize(layers_size);
@@ -40,7 +43,6 @@ int main() {
   // model.printDescription();
 
   /* Train params */
-  globalIsSyncMode() = true;      // train mode: sync | async
   float lr = 0.001f;
   model.setLR(lr);
   uint32_t epochs = 200, step = 1;
