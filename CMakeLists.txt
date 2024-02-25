@@ -31,6 +31,12 @@ include_directories(
 # source files
 file(GLOB SOURCES "src/*/*/*.cpp" "src/*/*.cpp" examples/dnn.cpp)
 
+find_package(Threads REQUIRED)
+
+message(STATUS "Find Threads: ${CMAKE_THREAD_LIBS_INIT}")
+message(STATUS "Find MPI: ${MPI_LIBRARIES}")
 
 add_executable(example ${SOURCES})
-target_link_libraries(example ${MPI_LIBRARIES})
+
+# target_link_libraries(example ${MPI_LIBRARIES} Threads::Threads)
+target_link_libraries(example ${MPI_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
