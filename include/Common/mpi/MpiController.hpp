@@ -21,6 +21,11 @@ struct TrainStatus {
   TrainStatus(int _epoch, int _batch_idx)
       : epoch(_epoch), batch_idx(_batch_idx) {}
 
+  TrainStatus(const TrainStatus &other) {
+    this->epoch = other.epoch;
+    this->batch_idx = other.batch_idx;
+  }
+
   void setStatus(int _epoch, int _batch_idx) {
     epoch = _epoch;
     batch_idx = _batch_idx;
@@ -183,4 +188,5 @@ private:
   MPI_Comm mpi_comm;
   int _global_done_rank_num;
 };
+
 } // namespace DeepLearningFramework

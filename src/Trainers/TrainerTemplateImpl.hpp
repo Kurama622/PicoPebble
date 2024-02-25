@@ -30,22 +30,7 @@ void Trainer::trainModel(std::vector<float> train_acc,
   uint32_t batch_num = X_train.rows() / batch_size;
 
   // set the flag for stopping synchronization parameters.
-  if (globalSyncStep()) {
-    uint32_t finish_epoch_idx = 0;
-    finish_epoch_idx =
-        (epochs * batch_num) - (epochs * batch_num) % globalSyncStep();
-    if (finish_epoch_idx % batch_num) {
-      finish_epoch_idx = finish_epoch_idx / batch_num;
-    } else {
-      finish_epoch_idx = finish_epoch_idx / batch_num - 1;
-    }
-
-    uint32_t finish_batch_idx =
-        batch_num - 1 - (epochs * batch_num) % globalSyncStep() % batch_num;
-    trainFinishFlag().setStatus(finish_epoch_idx, finish_batch_idx);
-  } else {
-    trainFinishFlag().setStatus(epochs - 1, batch_num - 1);
-  }
+  trainFinishFlag().setStatus(epochs - 1, batch_num - 1);
 
   for (uint32_t i = 0; i < epochs; i++) {
     float loss = 0.f;

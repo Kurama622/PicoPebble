@@ -6,7 +6,92 @@
 #include <iostream>
 #include <vector>
 
+#include <condition_variable>
+#include <functional>
+#include <future>
+#include <memory>
+#include <mutex>
+#include <queue>
+#include <thread>
+#include <type_traits>
+
 namespace DeepLearningFramework {
+
+template <typename F, typename... Args> struct invoke_result {
+  using type = decltype(std::declval<F>()(std::declval<TrainStatus>(),
+                                          std::declval<Args>()...));
+};
+
+template <typename F, typename... Args>
+using invoke_result_t = typename invoke_result<F, Args...>::type;
+
+class BackgroundThread {
+public:
+  explicit BackgroundThread() : m_stop(false) {
+    worker = std::thread([this]() {
+      while (true) {
+        std::unique_lock<std::mutex> lock(this->m_mtx);
+
+        this->m_cv.wait(
+            lock, [this]() { return this->m_stop || !this->tasks.empty(); });
+
+        if (this->m_stop && this->tasks.empty())
+          return;
+
+        std::function<void()> task = std::move(this->tasks.front());
+        this->tasks.pop();
+
+        lock.unlock();
+
+        task();
+      }
+    });
+  }
+
+  template <typename F, typename... Args>
+  auto enqueue(F &&f, TrainStatus train_status, Args &&...args)
+      -> std::future<invoke_result_t<F, Args...>> {
+    using return_type = invoke_result_t<F, Args...>;
+    auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(
+        std::forward<F>(f), train_status, std::forward<Args>(args)...));
+    std::future<return_type> res = task->get_future();
+    {
+      std::unique_lock<std::mutex> lock(m_mtx);
+
+      if (m_stop) {
+        throw std::runtime_error("enqueue on stopped Thread pool");
+      }
+
+      // add task
+      tasks.emplace([task = std::move(task),
+                     train_status = std::move(train_status)]() { (*task)(); });
+    }
+    m_cv.notify_one();
+    return res;
+  }
+
+  ~BackgroundThread() {
+    {
+      std::unique_lock<std::mutex> lock(m_mtx);
+      m_stop = true;
+    }
+    m_cv.notify_all();
+
+    worker.join();
+  }
+
+private:
+  std::thread worker;
+  std::queue<std::function<void()>> tasks;
+  std::mutex m_mtx;
+  std::condition_variable m_cv;
+  bool m_stop;
+};
+
+inline BackgroundThread &globalBackgroundThread() {
+  static BackgroundThread bgthread;
+  return bgthread;
+}
 
 class GlobalState {
 public:
@@ -70,6 +155,11 @@ inline MPIController &globalController() {
 inline GlobalState &globalState() {
   static GlobalState global_state;
   return global_state;
+}
+
+inline bool &globalIsSyncMode() {
+  static bool global_is_sync_mode = true;
+  return global_is_sync_mode;
 }
 
 } // namespace DeepLearningFramework

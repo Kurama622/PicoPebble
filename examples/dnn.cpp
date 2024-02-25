@@ -12,7 +12,8 @@
 using namespace DeepLearningFramework;
 
 int main() {
-  std::vector<int> layers_size = {2, 10, 10, 2};
+  std::vector<int> layers_size = {4, 10, 10, 3}; // iris
+  // std::vector<int> layers_size = {2, 10, 10, 2}; // uniform_sample_size_per_part
   initialize(layers_size);
   /* Model creation */
   std::vector<Module *> layers;
@@ -28,8 +29,8 @@ int main() {
 
   /* Generate train and test sets */
   Eigen::MatrixXf y_train, X_train, y_test, X_test;
-  // std::string data_path = "../data/iris/";
-  std::string data_path = "../data/uniform_sample_size_per_part/";
+  std::string data_path = "../data/iris/";
+  // std::string data_path = "../data/uniform_sample_size_per_part/";
   DataLoader::load(data_path, X_train, y_train,
                    X_test, y_test);
 
@@ -39,11 +40,12 @@ int main() {
   // model.printDescription();
 
   /* Train params */
-  float lr = 0.002f;
+  globalIsSyncMode() = true;      // train mode: sync | async
+  float lr = 0.001f;
   model.setLR(lr);
   uint32_t epochs = 200, step = 1;
   constexpr auto batch_size = 64;
-  constexpr auto feature_dim = 2;
+  constexpr auto feature_dim = 4;
 
   // number of train and test samples
   std::vector<float> train_acc, test_acc;

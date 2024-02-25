@@ -12,46 +12,48 @@
 
 namespace DeepLearningFramework {
 
+inline int &globalDoneRankNum() {
+  static int done_rank_num = 0;
+  return done_rank_num;
+}
+
 template <typename... Args> class Decorator {
 public:
-  Decorator(std::function<void(Args...)> f) : m_func(f) {}
-  void operator()(Args... args) { m_func(args...); }
+  Decorator(std::function<void(Args &&...)> f) : m_func(f) {}
+  void operator()(Args &&...args) { m_func(std::forward<Args>(args)...); }
 
 protected:
-  std::function<void(Args...)> m_func;
+  std::function<void(Args &&...)> m_func;
 };
 
 template <typename... Args>
-class SyncStatusDecorator : public Decorator<Args...> {
+class SyncStatusDecorator : public Decorator<Args &&...> {
 public:
-  SyncStatusDecorator(std::function<void(Args...)> f) : Decorator<Args...>(f) {}
-  void operator()(Args... args) {
+  SyncStatusDecorator(std::function<void(Args &&...)> f)
+      : Decorator<Args &&...>(f) {}
+  void operator()(TrainStatus train_status, Args &&...args) {
 
     MPIController &global_controller = globalController();
 
-    if (done_rank_num == global_controller.mpiSize() - 1) {
+    if (globalDoneRankNum() == global_controller.mpiSize() - 1) {
       return;
     }
 
-    Decorator<Args...>::operator()(args...);
+    Decorator<Args &&...>::operator()(std::forward<Args>(args)...);
 
-    if (globalTrainStatus() == trainFinishFlag()) {
+    if (train_status == trainFinishFlag()) {
       done_status = 1;
     }
 
     global_controller.mpiReduce<int>(&done_status, &done_rank_num, 1, MPI_SUM,
                                      0);
+    globalDoneRankNum() = done_rank_num;
   }
 
 private:
   int done_status = 0;
   int done_rank_num = 0;
 };
-
-inline int &globalSyncStep() {
-  static int global_sync_step = 0;
-  return global_sync_step;
-}
 
 inline std::string formatString(int number) {
   std::stringstream ss;
@@ -90,7 +92,8 @@ inline void pullParameters() {
       convertMatrixToArray(weights_mat, send_weigths_buf);
     }
     global_controller.mpiPull<float>(send_weigths_buf, recv_weigths_buf, count);
-    // global_controller.mpiSync<float>(send_weigths_buf, recv_weigths_buf, count, 0);
+    // global_controller.mpiSync<float>(send_weigths_buf, recv_weigths_buf,
+    // count, 0);
 
     if (global_controller.mpiRank() != 0) {
       convertArrayToMatrix(recv_weigths_buf, weights_mat);
@@ -143,6 +146,8 @@ static SyncStatusDecorator<> Barrier(barrier);
 
 static SyncStatusDecorator<> PullParameters(pullParameters);
 
+/* deprecated: parameters update interval */
+/*
 inline void PullParametersStep(int step) {
   if (step == 0) {
     return PullParameters();
@@ -156,6 +161,7 @@ inline void PullParametersStep(int step) {
     PullParameters();
   }
 }
+*/
 
 static SyncStatusDecorator<Eigen::MatrixXf &, const int &>
     PushGradients(pushGradients);
@@ -168,9 +174,12 @@ inline void initialize(const std::vector<int> &layers_size) {
   global_state.setLayersSize(layers_size);
   global_state.initGlobalWeights();
   global_state.initGlobalBias();
-  PullParametersStep(globalSyncStep());
+
+  PullParameters(globalTrainStatus());
 }
 
-inline void finalize() {}
+inline void finalize() {
+  // Log("finalize");
+}
 
 } // namespace DeepLearningFramework

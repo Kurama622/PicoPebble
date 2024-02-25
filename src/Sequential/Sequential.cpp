@@ -18,7 +18,11 @@ void Sequential::forward(Eigen::MatrixXf &x, const std::string& mode) {
   std::vector<Module *>::iterator it;
 
   if (mode == "train") {
-    PullParametersStep(globalSyncStep());
+    if(globalIsSyncMode()) {
+      PullParameters(globalTrainStatus());
+    } else {
+      globalBackgroundThread().enqueue(PullParameters, globalTrainStatus());
+    }
   }
 
   for (it = _model.begin(); it != _model.end(); it++)
@@ -37,7 +41,11 @@ void Sequential::backward(float &loss, const Eigen::MatrixXf &y,
   int tag = 0;
 
   for (auto it = _model.rbegin(); it != _model.rend(); it++) {
-    PushGradients(grad, tag);
+    if(globalIsSyncMode()) {
+      PushGradients(globalTrainStatus(), grad, tag);
+    } else {
+      globalBackgroundThread().enqueue(PushGradients, globalTrainStatus(), grad, tag);
+    }
     (*it)->backward(grad, grad);
     tag++;
   }
