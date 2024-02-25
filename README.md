@@ -1,7 +1,13 @@
 # Build && run
 
+## single-node or single-machine
 ```bash
 # ./build_run.sh <node num>
+./build_run.sh 1
+```
+
+## multi-node
+```bash
 ./build_run.sh 3
 ```
 
