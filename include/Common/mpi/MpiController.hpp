@@ -1,6 +1,7 @@
 #pragma once
 
 #include "mpi/TypeTraits.hpp"
+#include <iostream>
 #include <mpi.h>
 #include <string>
 #include <vector>
@@ -146,8 +147,14 @@ public:
   //   }
   // }
 
-  template <typename T> void mpiBcast(T *sendbuf, int count, int root) {
-    MPI_Bcast(sendbuf, count, getMPIDataType<T>(), root, mpi_comm);
+  template <typename T>
+  void mpiBcast(std::vector<T> &sendbuf, int count, int root) {
+    MPI_Bcast(sendbuf.data(), count, getMPIDataType<T>(), root, mpi_comm);
+    MPI_Barrier(mpi_comm);
+  }
+
+  template <typename T> void mpiBcast(T &sendbuf, int root) {
+    MPI_Bcast(&sendbuf, 1, getMPIDataType<T>(), root, mpi_comm);
     MPI_Barrier(mpi_comm);
   }
 

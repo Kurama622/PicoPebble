@@ -94,29 +94,45 @@ std::vector<std::string> DataLoader::listFiles(const std::string &path) {
     closedir(dir);
   }
 
-  int counts[mpi_size];
-  if (mpi_rank == 0) {
-    for (int i = 0; i < mpi_size; i++) {
-      counts[i] = file_count / mpi_size;
+  if (globalParallelismMode() == DATA_PARALLELISM) {
+    int counts[mpi_size];
+    if (mpi_rank == 0) {
+      for (int i = 0; i < mpi_size; i++) {
+        counts[i] = file_count / mpi_size;
+      }
+
+      int remainder = file_count % mpi_size;
+
+      for (int i = 0; i < remainder; i++) {
+        counts[i]++;
+      }
     }
 
-    int remainder = file_count % mpi_size;
+    int local_count;
 
-    for (int i = 0; i < remainder; i++) {
-      counts[i]++;
+    global_controller.mpiScatter(counts, 1, local_count, 1, 0);
+
+    std::vector<int64_t> local_file_ranks(local_count);
+    int ret = global_controller.mpiScatterv(file_ranks, counts, local_file_ranks,
+                                            local_count, 0);
+
+    for (auto &rank : local_file_ranks) {
+      local_files.emplace_back(path + "part-" + formatString(rank));
+    }
+  } else {
+    global_controller.mpiBcast(file_count, 0);
+
+    if (mpi_rank != 0) {
+        file_ranks.resize(file_count);
+    }
+    global_controller.mpiBcast(file_ranks, file_count, 0);
+    std::vector<int64_t>& local_file_ranks = file_ranks;
+
+    for (auto &rank : local_file_ranks) {
+      local_files.emplace_back(path + "part-" + formatString(rank));
     }
   }
 
-  int local_count;
-
-  global_controller.mpiScatter(counts, 1, local_count, 1, 0);
-  std::vector<int64_t> local_file_ranks(local_count);
-  int ret = global_controller.mpiScatterv(file_ranks, counts, local_file_ranks,
-                                          local_count, 0);
-
-  for (auto &rank : local_file_ranks) {
-    local_files.emplace_back(path + "part-" + formatString(rank));
-  }
 
   return local_files;
 }

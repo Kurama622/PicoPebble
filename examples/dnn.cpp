@@ -12,6 +12,9 @@
 using namespace DeepLearningFramework;
 
 int main() {
+  // parallelism mode: DATA_PARALLELISM | TENSOR_MODEL_PARALLELISM | PIPELINE_MODEL_PARALLELISM
+  globalParallelismMode() = TENSOR_MODEL_PARALLELISM;
+
   // train mode: SYNC | ASYNC
   globalTrainMode() = SYNC;
 

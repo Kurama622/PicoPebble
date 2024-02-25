@@ -17,6 +17,12 @@
 
 namespace DeepLearningFramework {
 
+enum ParallelismMode {
+  DATA_PARALLELISM,
+  TENSOR_MODEL_PARALLELISM,  // Inter-Layer Model Parallelism
+  PIPELINE_MODEL_PARALLELISM // Intra-Layer Model Parallelism
+};
+
 enum TrainMode { SYNC, ASYNC };
 
 template <typename F, typename... Args> struct invoke_result {
@@ -162,6 +168,11 @@ inline GlobalState &globalState() {
 inline TrainMode &globalTrainMode() {
   static TrainMode global_train_mode = SYNC;
   return global_train_mode;
+}
+
+inline ParallelismMode &globalParallelismMode() {
+  static ParallelismMode global_parallelism_mode = TENSOR_MODEL_PARALLELISM;
+  return global_parallelism_mode;
 }
 
 } // namespace DeepLearningFramework
