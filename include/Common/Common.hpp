@@ -12,6 +12,11 @@
 
 namespace DeepLearningFramework {
 
+inline void Log(const std::string &message) {
+  std::cout << "Rank: " << globalController().mpiRank() << ", " << message
+            << std::endl;
+}
+
 inline int &globalDoneRankNum() {
   static int done_rank_num = 0;
   return done_rank_num;

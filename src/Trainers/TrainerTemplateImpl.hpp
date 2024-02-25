@@ -9,14 +9,19 @@
 
 using namespace DeepLearningFramework;
 
-inline Eigen::MatrixXf oneHotEncoding(const Eigen::MatrixXf& input) {
-    int n = input.rows(); // 输入矩阵的行数
-    int N_classes = input.maxCoeff() + 1;
-    Eigen::MatrixXf one_hot = Eigen::MatrixXf::Zero(n, N_classes);
-    for (int i = 0; i < n; ++i) {
-        one_hot(i, static_cast<int>(input(i))) = 1.0;
-    }
-    return one_hot;
+inline Eigen::MatrixXf oneHotEncoding(const Eigen::MatrixXf &input) {
+  /* Transform labels into one-hot encoding:
+   * 0  ->  0 0 0
+   * 1  ->  0 1 0
+   * 2  ->  0 0 1
+   * */
+  int n = input.rows();
+  int N_classes = input.maxCoeff() + 1;
+  Eigen::MatrixXf one_hot = Eigen::MatrixXf::Zero(n, N_classes);
+  for (int i = 0; i < n; ++i) {
+    one_hot(i, static_cast<int>(input(i))) = 1.0;
+  }
+  return one_hot;
 }
 
 template <uint32_t batch_size, uint32_t feature_dim>
