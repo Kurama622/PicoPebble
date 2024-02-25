@@ -12,10 +12,17 @@
 
 namespace DeepLearningFramework {
 
-inline void Log(const std::string &message) {
-  std::cout << "Rank: " << globalController().mpiRank() << ", " << message
-            << std::endl;
-}
+class Log {
+public:
+  Log() { std::cout << "Rank: " << globalController().mpiRank() << ", "; }
+
+  ~Log() { std::cout << std::endl; }
+
+  template <typename T> Log &operator<<(const T &message) {
+    std::cout << message;
+    return *this;
+  }
+};
 
 inline int &globalDoneRankNum() {
   static int done_rank_num = 0;
@@ -184,7 +191,7 @@ inline void initialize(const std::vector<int> &layers_size) {
 }
 
 inline void finalize() {
-  // Log("finalize");
+  // Log << "finalize";
 }
 
 } // namespace DeepLearningFramework

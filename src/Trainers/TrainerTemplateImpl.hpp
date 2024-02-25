@@ -59,8 +59,7 @@ void Trainer::trainModel(std::vector<float> train_acc,
     loss /= batch_num;
 
     if (i % step == 0)
-      std::cout << "Rank: " << globalController().mpiRank() << ", Epoch: " << i
-                << ", train accuracy: " << train_acc.at(i) << ", loss: " << loss
-                << ", test accuracy: " << test_acc.at(i) << std::endl;
+      Log() << "Epoch: " << i << ", train accuracy: " << train_acc.at(i)
+            << ", loss: " << loss << ", test accuracy: " << test_acc.at(i);
   }
 }
