@@ -44,6 +44,8 @@ public:
   /* Print description of MSE loss class */
   void printDescription();
 
+  std::string getName();
+
 private:
   std::string _type = "Loss";
   std::string _name = "MSE";

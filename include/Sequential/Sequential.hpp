@@ -60,11 +60,15 @@ public:
   /** Get the number of parameters of the model. */
   uint32_t getParametersCount();
 
+  std::string getName();
+
 private:
   // type, name, neural network
   std::string _type = "Module";
   std::string _name = "Sequential";
   std::vector<Module *> _model;
   Losses::MSE _loss;
+  int _forward_flag;
+  int _backward_flag;
 };
 }; // namespace DeepLearningFramework

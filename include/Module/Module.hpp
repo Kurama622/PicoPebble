@@ -21,5 +21,6 @@ public:
   virtual void setLR(float lr) = 0;
 
   virtual uint32_t getParametersCount() = 0;
+  virtual std::string getName() = 0;
 };
 }; // namespace DeepLearningFramework

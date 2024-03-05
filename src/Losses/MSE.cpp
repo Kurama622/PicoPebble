@@ -21,3 +21,5 @@ void MSE::backward(Eigen::MatrixXf &dloss, const Eigen::MatrixXf &y,
 }
 
 void MSE::printDescription() { std::cout << "MSE loss" << std::endl; }
+
+std::string MSE::getName() { return _name; }

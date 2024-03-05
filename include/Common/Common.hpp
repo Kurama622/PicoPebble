@@ -181,13 +181,24 @@ static SyncStatusDecorator<Eigen::MatrixXf &, const int &>
 inline void initialize(const std::vector<int> &layers_size) {
   MPIController &global_controller = globalController();
 
-  /* init global weight and bias */
   GlobalState &global_state = globalState();
   global_state.setLayersSize(layers_size);
+
+  if (globalParallelismMode() == PIPELINE_MODEL_PARALLELISM &&
+      global_state.getLayersNum() - 1 < global_controller.mpiSize()) {
+    Log() << "The network’s parameters can be distributed to a maximum of "
+          << global_state.getLayersNum() - 1 << " nodes.";
+    exit(1);
+  }
+  global_state.layersDistribution();
+
+  /* init global weight and bias */
   global_state.initGlobalWeights();
   global_state.initGlobalBias();
 
-  PullParameters(globalTrainStatus());
+  if (globalParallelismMode() == DATA_PARALLELISM) {
+    PullParameters(globalTrainStatus());
+  }
 }
 
 inline void finalize() {
