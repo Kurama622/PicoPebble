@@ -17,6 +17,12 @@
 
 namespace DeepLearningFramework {
 
+enum ParallelismMode {
+  DATA_PARALLELISM,
+  TENSOR_MODEL_PARALLELISM,  // Inter-Layer Model Parallelism
+  PIPELINE_MODEL_PARALLELISM // Intra-Layer Model Parallelism
+};
+
 enum TrainMode { SYNC, ASYNC };
 
 template <typename F, typename... Args> struct invoke_result {
@@ -95,6 +101,21 @@ inline BackgroundThread &globalBackgroundThread() {
   return bgthread;
 }
 
+inline MPIController &globalController() {
+  static MPIController mpi_controller;
+  return mpi_controller;
+}
+
+inline TrainMode &globalTrainMode() {
+  static TrainMode global_train_mode = SYNC;
+  return global_train_mode;
+}
+
+inline ParallelismMode &globalParallelismMode() {
+  static ParallelismMode global_parallelism_mode = TENSOR_MODEL_PARALLELISM;
+  return global_parallelism_mode;
+}
+
 class GlobalState {
 public:
   void setLayersSize(const std::vector<int> &layers_size) {
@@ -105,18 +126,71 @@ public:
 
   int getLayersNum() { return _layers_size.size(); }
 
+  std::vector<int> getNodeLayersRank() {
+    return _node_layers_rank[globalController().mpiRank()];
+  }
+
+  std::vector<int> getLayerRankBound() {
+    auto minmax = std::minmax_element(
+        _node_layers_rank[globalController().mpiRank()].begin(),
+        _node_layers_rank[globalController().mpiRank()].end());
+
+    int min_layer_rank = *minmax.first;
+    int max_layer_rank = *minmax.second;
+    return {min_layer_rank, max_layer_rank};
+  }
+
+  void layersDistribution() {
+    if (globalParallelismMode() == PIPELINE_MODEL_PARALLELISM) {
+      const int mpi_size = globalController().mpiSize();
+      const int layers_num = _layers_size.size();
+      int node_layers_num[mpi_size];
+
+      for (int i = 0; i < mpi_size; i++) {
+        node_layers_num[i] = (layers_num - 1) / mpi_size;
+      }
+
+      int layers_remainder = (layers_num - 1) % mpi_size;
+
+      for (int i = 0; i < layers_remainder; i++) {
+        node_layers_num[i]++;
+      }
+
+      int layer_indicator = 1;
+      for (int i = 0; i < mpi_size; i++) {
+        std::vector<int> layers_size, layers_rank;
+        while (node_layers_num[i]--) {
+          layers_size.emplace_back(_layers_size[layer_indicator - 1]);
+          layers_size.emplace_back(_layers_size[layer_indicator]);
+          layers_rank.emplace_back(layer_indicator - 1);
+          layer_indicator++;
+        }
+        _node_layers_size.emplace_back(layers_size);
+        _node_layers_rank.emplace_back(layers_rank);
+      }
+
+    } else {
+      const int mpi_size = globalController().mpiSize();
+      for (int i = 0; i < mpi_size; i++) {
+        _node_layers_size.emplace_back(_layers_size);
+      }
+    }
+  }
+
   void initGlobalWeights() {
-    const int layers_num = _layers_size.size();
-    for (int i = 1; i < layers_num; ++i) {
-      _global_weigths.emplace_back(
-          Eigen::MatrixXf::Random(_layers_size[i - 1], _layers_size[i]));
+    const int mpi_rank = globalController().mpiRank();
+
+    for (int i = 1; i < _node_layers_size[mpi_rank].size(); ++i) {
+      _global_weigths.emplace_back(Eigen::MatrixXf::Random(
+          _node_layers_size[mpi_rank][i - 1], _node_layers_size[mpi_rank][i]));
     }
   }
 
   void initGlobalBias() {
-    const int layers_num = _layers_size.size();
-    for (int i = 1; i < layers_num; ++i) {
-      _global_bias.emplace_back(Eigen::MatrixXf::Random(1, _layers_size[i]));
+    const int mpi_rank = globalController().mpiRank();
+    for (int i = 1; i < _node_layers_size[mpi_rank].size(); ++i) {
+      _global_bias.emplace_back(
+          Eigen::MatrixXf::Random(1, _node_layers_size[mpi_rank][i]));
     }
   }
 
@@ -147,21 +221,22 @@ private:
   std::vector<Eigen::MatrixXf> _global_weigths;
   std::vector<Eigen::MatrixXf> _global_bias;
   std::vector<int> _layers_size;
+  std::vector<std::vector<int>> _node_layers_size;
+  std::vector<std::vector<int>> _node_layers_rank;
 };
-
-inline MPIController &globalController() {
-  static MPIController mpi_controller;
-  return mpi_controller;
-}
 
 inline GlobalState &globalState() {
   static GlobalState global_state;
   return global_state;
 }
 
-inline TrainMode &globalTrainMode() {
-  static TrainMode global_train_mode = SYNC;
-  return global_train_mode;
+inline int &minLayerRank() {
+  static int min_layer_rank = globalState().getLayerRankBound()[0];
+  return min_layer_rank;
 }
 
+inline int &maxLayerRank() {
+  static int max_layer_rank = globalState().getLayerRankBound()[1];
+  return max_layer_rank;
+}
 } // namespace DeepLearningFramework

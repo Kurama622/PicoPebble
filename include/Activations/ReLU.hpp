@@ -46,6 +46,8 @@ public:
   /* Override getParametersCount */
   uint32_t getParametersCount() override { return 0; }
 
+  std::string getName();
+
 private:
   std::string _type = "Activation";
   std::string _name = "ReLU";

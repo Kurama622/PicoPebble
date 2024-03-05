@@ -4,6 +4,7 @@
 
 #include "Linear.hpp"
 #include "GlobalState.hpp"
+#include <algorithm>
 
 #include <iostream>
 
@@ -14,8 +15,25 @@ Linear::Linear(int input_size, int output_size) {
   _input_size = input_size;
   _output_size = output_size;
   _layer_rank = _layer_count++;
-  _weights = &globalState().getWeights(_layer_rank);
-  _bias = &globalState().getBias(_layer_rank);
+
+  switch (globalParallelismMode()) {
+  case DATA_PARALLELISM: {
+    _weights = &globalState().getWeights(_layer_rank);
+    _bias = &globalState().getBias(_layer_rank);
+    break;
+  }
+  case PIPELINE_MODEL_PARALLELISM: {
+    if (_layer_rank < minLayerRank() || _layer_rank > maxLayerRank()) {
+      return;
+    }
+
+    _weights = &globalState().getWeights(_layer_rank - minLayerRank());
+    _bias = &globalState().getBias(_layer_rank - minLayerRank());
+    break;
+  }
+  case TENSOR_MODEL_PARALLELISM: {
+  }
+  }
 }
 
 void Linear::forward(Eigen::MatrixXf &out, const Eigen::MatrixXf &x) {
@@ -57,3 +75,5 @@ void Linear::setWeightsAndBias(const Eigen::MatrixXf &weights,
   *_weights = weights;
   *_bias = bias;
 }
+
+std::string Linear::getName() { return _name; }

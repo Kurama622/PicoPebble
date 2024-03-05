@@ -59,6 +59,8 @@ public:
   void setWeightsAndBias(const Eigen::MatrixXf &weights,
                          const Eigen::MatrixXf &bias);
 
+  std::string getName();
+
 private:
   /**
    * Update weights and bias with given parameters.

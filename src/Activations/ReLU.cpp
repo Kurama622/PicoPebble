@@ -20,3 +20,5 @@ void ReLU::backward(Eigen::MatrixXf &din, const Eigen::MatrixXf &dout) {
 }
 
 void ReLU::printDescription() { std::cout << "ReLU activation" << std::endl; }
+
+std::string ReLU::getName() { return _name; }

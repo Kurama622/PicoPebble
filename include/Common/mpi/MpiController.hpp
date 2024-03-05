@@ -1,11 +1,21 @@
 #pragma once
 
 #include "mpi/TypeTraits.hpp"
+#include <iostream>
 #include <mpi.h>
 #include <string>
 #include <vector>
 
 namespace DeepLearningFramework {
+
+enum TAG {
+  FORWARD_FLAG,
+  FORWARD_SHAPE,
+  FORWARD_PARAMETERS,
+  BACKWARD_FLAG,
+  BACKWARD_SHAPE,
+  BACKWARD_PARAMETERS
+};
 
 inline bool &isSyncStopped() {
   static bool is_sync_stopped = false;
@@ -146,8 +156,14 @@ public:
   //   }
   // }
 
-  template <typename T> void mpiBcast(T *sendbuf, int count, int root) {
-    MPI_Bcast(sendbuf, count, getMPIDataType<T>(), root, mpi_comm);
+  template <typename T>
+  void mpiBcast(std::vector<T> &sendbuf, int count, int root) {
+    MPI_Bcast(sendbuf.data(), count, getMPIDataType<T>(), root, mpi_comm);
+    MPI_Barrier(mpi_comm);
+  }
+
+  template <typename T> void mpiBcast(T &sendbuf, int root) {
+    MPI_Bcast(&sendbuf, 1, getMPIDataType<T>(), root, mpi_comm);
     MPI_Barrier(mpi_comm);
   }
 
@@ -170,6 +186,88 @@ public:
       }
     } else {
       MPI_Send(sendbuf, count, getMPIDataType<T>(), 0, tag, mpi_comm);
+    }
+  }
+
+  void mpiForwardSend(int &forward_flag) {
+    if (mpi_rank < mpi_size - 1) {
+      MPI_Send(&forward_flag, 1, MPI_INT, mpi_rank + 1, FORWARD_FLAG, mpi_comm);
+    }
+  }
+
+  void mpiForwardRecv(int &forward_flag) {
+    if (mpi_rank > 0) {
+      MPI_Recv(&forward_flag, 1, MPI_INT, mpi_rank - 1, FORWARD_FLAG, mpi_comm,
+               MPI_STATUS_IGNORE);
+    }
+  }
+
+  void mpiForwardSend(std::vector<int> &shape) {
+    if (mpi_rank < mpi_size - 1) {
+      MPI_Send(shape.data(), 2, MPI_INT, mpi_rank + 1, FORWARD_SHAPE, mpi_comm);
+    }
+  }
+
+  void mpiForwardRecv(std::vector<int> &shape) {
+    if (mpi_rank > 0) {
+      MPI_Recv(shape.data(), 2, MPI_INT, mpi_rank - 1, FORWARD_SHAPE, mpi_comm,
+               MPI_STATUS_IGNORE);
+    }
+  }
+
+  template <typename T> void mpiForwardSend(T *array, int count) {
+    if (mpi_rank < mpi_size - 1) {
+      MPI_Send(array, count, getMPIDataType<T>(), mpi_rank + 1,
+               FORWARD_PARAMETERS, mpi_comm);
+    }
+  }
+
+  template <typename T> void mpiForwardRecv(T *array, int count) {
+    if (mpi_rank > 0) {
+      MPI_Recv(array, count, getMPIDataType<T>(), mpi_rank - 1,
+               FORWARD_PARAMETERS, mpi_comm, MPI_STATUS_IGNORE);
+    }
+  }
+
+  void mpiBackwardSend(int &backward_flag) {
+    if (mpi_rank > 0) {
+      MPI_Send(&backward_flag, 1, MPI_INT, mpi_rank - 1, BACKWARD_FLAG,
+               mpi_comm);
+    }
+  }
+
+  void mpiBackwardRecv(int &backward_flag) {
+    if (mpi_rank < mpi_size - 1) {
+      MPI_Recv(&backward_flag, 1, MPI_INT, mpi_rank + 1, BACKWARD_FLAG,
+               mpi_comm, MPI_STATUS_IGNORE);
+    }
+  }
+
+  void mpiBackwardSend(std::vector<int> &shape) {
+    if (mpi_rank > 0) {
+      MPI_Send(shape.data(), 2, MPI_INT, mpi_rank - 1, BACKWARD_SHAPE,
+               mpi_comm);
+    }
+  }
+
+  void mpiBackwardRecv(std::vector<int> &shape) {
+    if (mpi_rank < mpi_size - 1) {
+      MPI_Recv(shape.data(), 2, MPI_INT, mpi_rank + 1, BACKWARD_SHAPE, mpi_comm,
+               MPI_STATUS_IGNORE);
+    }
+  }
+
+  template <typename T> void mpiBackwardSend(T *array, int count) {
+    if (mpi_rank > 0) {
+      MPI_Send(array, count, getMPIDataType<T>(), mpi_rank - 1,
+               BACKWARD_PARAMETERS, mpi_comm);
+    }
+  }
+
+  template <typename T> void mpiBackwardRecv(T *array, int count) {
+    if (mpi_rank < mpi_size - 1) {
+      MPI_Recv(array, count, getMPIDataType<T>(), mpi_rank + 1,
+               BACKWARD_PARAMETERS, mpi_comm, MPI_STATUS_IGNORE);
     }
   }
 

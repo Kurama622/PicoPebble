@@ -23,18 +23,15 @@ void Softmax::backward(Eigen::MatrixXf &din, const Eigen::MatrixXf &dout) {
     for (int j = 0; j < dout.cols(); ++j) {
       for (int k = 0; k < dout.cols(); ++k) {
         if (j == k) {
-          din(i, j) += grad(i, k) *
-                         _forward_input_with_softmax_applied(i, k) *
-                         (1.f - _forward_input_with_softmax_applied(i, j));
+          din(i, j) += grad(i, k) * _forward_input_with_softmax_applied(i, k) *
+                       (1.f - _forward_input_with_softmax_applied(i, j));
         } else {
-          din(i, j) += grad(i, k) *
-                         _forward_input_with_softmax_applied(i, k) *
-                         (-_forward_input_with_softmax_applied(i, j));
+          din(i, j) += grad(i, k) * _forward_input_with_softmax_applied(i, k) *
+                       (-_forward_input_with_softmax_applied(i, j));
         }
       }
     }
   }
-
 }
 
 void Softmax::printDescription() {
@@ -48,3 +45,5 @@ void Softmax::equation(Eigen::MatrixXf &y, const Eigen::MatrixXf &x) {
     y.row(row) = exp_x.row(row) / exp_x.row(row).sum();
   }
 }
+
+std::string Softmax::getName() { return _name; }

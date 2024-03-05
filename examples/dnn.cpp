@@ -1,22 +1,32 @@
+#include "Common.hpp"
 #include "DataLoader.hpp"
+#include "GlobalState.hpp"
 #include "Linear.hpp"
 #include "MSE.hpp"
-#include "Metrics.hpp"
 #include "ReLU.hpp"
 #include "Sequential.hpp"
 #include "Softmax.hpp"
 #include "Trainer.hpp"
-#include "GlobalState.hpp"
-#include "Common.hpp"
 
 using namespace DeepLearningFramework;
 
 int main() {
+  // parallelism mode:
+  //    DATA_PARALLELISM | TENSOR_MODEL_PARALLELISM | PIPELINE_MODEL_PARALLELISM
+
+  // globalParallelismMode() = TENSOR_MODEL_PARALLELISM;
+  globalParallelismMode() = PIPELINE_MODEL_PARALLELISM;
+  // globalParallelismMode() = DATA_PARALLELISM;
+
   // train mode: SYNC | ASYNC
   globalTrainMode() = SYNC;
 
-  std::vector<int> layers_size = {4, 10, 10, 3}; // iris
-  // std::vector<int> layers_size = {2, 10, 10, 2}; // uniform_sample_size_per_part
+  // iris
+  std::vector<int> layers_size = {4, 10, 10, 3};
+
+  // uniform_sample_size_per_part
+  // std::vector<int> layers_size = {2, 10, 10, 2};
+
   initialize(layers_size);
   /* Model creation */
   std::vector<Module *> layers;
@@ -34,8 +44,7 @@ int main() {
   Eigen::MatrixXf y_train, X_train, y_test, X_test;
   std::string data_path = "../data/iris/";
   // std::string data_path = "../data/uniform_sample_size_per_part/";
-  DataLoader::load(data_path, X_train, y_train,
-                   X_test, y_test);
+  DataLoader::load(data_path, X_train, y_train, X_test, y_test);
 
   Losses::MSE mseLoss;
 
@@ -53,8 +62,9 @@ int main() {
   std::vector<float> train_acc, test_acc;
 
   // Train model
-  Trainer::trainModel<batch_size, feature_dim>(train_acc, test_acc, model, epochs, y_train,
-                                  X_train, y_test, X_test, step);
+  Trainer::trainModel<batch_size, feature_dim>(train_acc, test_acc, model,
+                                               epochs, y_train, X_train, y_test,
+                                               X_test, step);
 
   finalize();
 }
