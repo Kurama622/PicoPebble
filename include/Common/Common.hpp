@@ -191,7 +191,7 @@ inline void initialize(const std::vector<int> &layers_size) {
 }
 
 inline void finalize() {
-  // Log << "finalize";
+  // Log() << "finalize";
 }
 
 } // namespace DeepLearningFramework
