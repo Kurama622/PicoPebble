@@ -1,4 +1,4 @@
-[ENGLISH](./README.md) | 中文版
+**[ENGLISH](./README.md)** | **中文版**
 
 # 介绍
 
@@ -31,13 +31,13 @@ sudo pacman -S openmpi
 
 # 编译运行
 
-## single-node or single-machine
+## 单机单节点
 ```bash
 # ./build_run.sh <node num>
 ./build_run.sh 1
 ```
 
-## multi-node
+## 多节点
 ```bash
 ./build_run.sh 3
 ```
