@@ -26,6 +26,7 @@ Sequential::Sequential(std::vector<Module *> &model, Losses::MSE loss) {
     std::copy(model.begin() + node_layer_start_rank,
               model.begin() + node_layer_start_rank + node_layer_num,
               _model.begin());
+    break;
   }
   case TENSOR_MODEL_PARALLELISM: {
   }
