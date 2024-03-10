@@ -1,4 +1,4 @@
-**ENGLISH**  |  [中文版](./README_CN.md)
+**ENGLISH**  |  **[中文版](./README_CN.md)**
 
 # Introduction
 
