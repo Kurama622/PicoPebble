@@ -1,4 +1,4 @@
-**[ENGLISH](./README.md)** | **中文版**
+**[ENGLISH](./README.md)**  |  **中文版**
 
 # 介绍
 
