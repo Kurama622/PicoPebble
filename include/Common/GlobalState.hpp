@@ -118,6 +118,7 @@ inline ParallelismMode &globalParallelismMode() {
 
 class GlobalState {
 public:
+  GlobalState() { initParameterInterval(); }
   void setLayersSize(const std::vector<int> &layers_size) {
     _layers_size = layers_size;
   }
@@ -177,10 +178,24 @@ public:
     }
   }
 
+  void initParameterInterval() {
+    switch (globalParallelismMode()) {
+    case DATA_PARALLELISM: {
+      _interval = 1;
+      break;
+    }
+    case PIPELINE_MODEL_PARALLELISM: {
+      _interval = 2;
+      break;
+    }
+    case TENSOR_MODEL_PARALLELISM: {
+    }
+    }
+  }
+
   void initGlobalWeights() {
     const int mpi_rank = globalController().mpiRank();
-
-    for (int i = 1; i < _node_layers_size[mpi_rank].size(); ++i) {
+    for (int i = 1; i < _node_layers_size[mpi_rank].size(); i = i + _interval) {
       _global_weigths.emplace_back(Eigen::MatrixXf::Random(
           _node_layers_size[mpi_rank][i - 1], _node_layers_size[mpi_rank][i]));
     }
@@ -188,7 +203,7 @@ public:
 
   void initGlobalBias() {
     const int mpi_rank = globalController().mpiRank();
-    for (int i = 1; i < _node_layers_size[mpi_rank].size(); ++i) {
+    for (int i = 1; i < _node_layers_size[mpi_rank].size(); i = i + _interval) {
       _global_bias.emplace_back(
           Eigen::MatrixXf::Random(1, _node_layers_size[mpi_rank][i]));
     }
@@ -223,6 +238,7 @@ private:
   std::vector<int> _layers_size;
   std::vector<std::vector<int>> _node_layers_size;
   std::vector<std::vector<int>> _node_layers_rank;
+  int _interval;
 };
 
 inline GlobalState &globalState() {
