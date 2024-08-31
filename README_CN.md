@@ -2,7 +2,7 @@
 
 # 介绍
 
-DeepStream是一个分布式机器学习训练框架，目前还在开发中。它通过mpi在多机之间传递参数以及更新梯度，当然你也可以只用单机训练。目前DeepStream已经支持的功能包括：
+PicoPebble是一个面向机器学习领域初学者的分布式机器学习训练框架。它通过mpi在多机之间传递参数以及更新梯度，当然你也可以只用单机训练。目前PicoPebble已经支持的功能包括：
 - 同步训练
 - 异步训练
 - 数据并行
@@ -15,7 +15,7 @@ DeepStream是一个分布式机器学习训练框架，目前还在开发中。�
 
 # 依赖
 
-目前DeepStream依赖mpi来做参数同步，因此您需要安装openmpi，请注意不要同时安装openmpi和mpich
+目前PicoPebble依赖mpi来做参数同步，因此您需要安装openmpi，请注意不要同时安装openmpi和mpich
 
 ## Ubuntu
 ```bash

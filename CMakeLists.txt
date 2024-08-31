@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0.0)
 
-project(DeepStream VERSION 0.1.0)
+project(PicoPebble VERSION 0.1.0)
 
 set (CMAKE_CXX_STANDARD 11)
 set(CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build." FORCE)
