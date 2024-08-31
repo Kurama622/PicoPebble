@@ -2,7 +2,7 @@
 
 # Introduction
 
-DeepStream is a distributed machine learning training framework that is currently under development. It uses MPI to pass parameters and update gradients between multiple machines, and it also allows for training on a single machine. The features currently supported by DeepStream include:
+PicoPebble is a lightweight distributed machine learning training framework for beginners. It uses MPI to pass parameters and update gradients between multiple machines, and it also allows for training on a single machine. The features currently supported by PicoPebble include:
 
 - Synchronous training
 - Asynchronous training
@@ -17,7 +17,7 @@ There are also several features in the development pipeline:
 
 # Dependency
 
-Currently, DeepStream relies on MPI for parameter synchronization, so you need to install OpenMPI. Please note that you should not install both OpenMPI and MPICH at the same time.
+Currently, PicoPebble relies on MPI for parameter synchronization, so you need to install OpenMPI. Please note that you should not install both OpenMPI and MPICH at the same time.
 
 ## Ubuntu
 ```bash
