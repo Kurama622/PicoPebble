@@ -19,6 +19,15 @@ There are also several features in the development pipeline:
 
 Currently, PicoPebble relies on MPI for parameter synchronization, so you need to install OpenMPI. Please note that you should not install both OpenMPI and MPICH at the same time.
 
+## Docker
+
+```bash
+docker build -t picopebble -f Dockerfile .
+
+# for podman
+# podman build -t picopebble -f Dockerfile .`
+```
+
 ## Ubuntu
 ```bash
 sudo apt install openmpi-bin libopenmpi-dev
