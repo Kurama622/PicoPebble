@@ -17,13 +17,11 @@ PicoPebble是一个面向机器学习领域初学者的分布式机器学习训�
 
 目前PicoPebble依赖mpi来做参数同步，因此您需要安装openmpi，请注意不要同时安装openmpi和mpich
 
-## Docker
+
+## Centos 8
 
 ```bash
-docker build -t picopebble -f Dockerfile .
-
-# 如果你使用podman
-# podman build -t picopebble -f Dockerfile .`
+sudo yum install openmpi-devel -y
 ```
 
 ## Ubuntu
@@ -37,6 +35,14 @@ sudo apt install openmpi-bin libopenmpi-dev
 sudo pacman -S openmpi
 ```
 
+## Docker
+
+```bash
+docker build -t picopebble -f Dockerfile .
+
+# 如果你使用podman
+# podman build -t picopebble -f Dockerfile .`
+```
 
 # 编译运行
 
