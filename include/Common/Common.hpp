@@ -78,8 +78,8 @@ public:
       done_status = 1;
     }
 
-    global_controller.mpiReduce<int>(&done_status, &done_rank_num, 1, MPI_SUM,
-                                     0);
+    global_controller.mpiAllreduce<int>(&done_status, &done_rank_num, 1,
+                                        MPI_SUM);
     globalDoneRankNum() = done_rank_num;
   }
 
@@ -124,9 +124,10 @@ inline void pullParameters() {
     if (global_controller.mpiRank() == 0) {
       convertMatrixToArray(weights_mat, send_weigths_buf);
     }
-    global_controller.mpiPull<float>(send_weigths_buf, recv_weigths_buf, count);
-    // global_controller.mpiSync<float>(send_weigths_buf, recv_weigths_buf,
-    // count, 0);
+    // global_controller.mpiPull<float>(send_weigths_buf, recv_weigths_buf,
+    // count);
+    global_controller.mpiPull<float>(send_weigths_buf, recv_weigths_buf, count,
+                                     i);
 
     if (global_controller.mpiRank() != 0) {
       convertArrayToMatrix(recv_weigths_buf, weights_mat);
@@ -141,8 +142,9 @@ inline void pullParameters() {
       convertMatrixToArray(bias_mat, send_bias_buf);
     }
 
-    global_controller.mpiPull<float>(send_bias_buf, recv_bias_buf, count);
-    // global_controller.mpiSync<float>(send_bias_buf, recv_bias_buf, count, 0);
+    // global_controller.mpiPull<float>(send_bias_buf, recv_bias_buf, count);
+    global_controller.mpiPull<float>(send_bias_buf, recv_bias_buf, count,
+                                     i + layers_num);
 
     if (global_controller.mpiRank() != 0) {
       convertArrayToMatrix(recv_bias_buf, bias_mat);

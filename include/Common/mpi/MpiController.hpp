@@ -93,6 +93,8 @@ public:
     MPI_Init(nullptr, nullptr);
     MPI_Comm_size(mpi_comm, &mpi_size);
     MPI_Comm_rank(mpi_comm, &mpi_rank);
+    MPI_Comm_dup(mpi_comm, &mpi_comm_pull);
+    MPI_Comm_dup(mpi_comm, &mpi_comm_push);
   };
 
   void setGlobalDoneRankNum(const int &num) { _global_done_rank_num = num; }
@@ -123,20 +125,21 @@ public:
                 recv_count, getMPIDataType<T>(), root, mpi_comm);
   }
 
-  template <typename T> void mpiPull(T *sendbuf, T *recvbuf, int count) {
-    MPI_Win win;
-    MPI_Win_create(sendbuf, count * sizeof(T), sizeof(T), MPI_INFO_NULL,
-                   mpi_comm, &win);
-    if (mpi_rank != 0) {
-      MPI_Win_lock(MPI_LOCK_SHARED, 0, 0, win);
-
-      MPI_Get(recvbuf, count, getMPIDataType<T>(), 0, 0, count,
-              getMPIDataType<T>(), win);
-
-      MPI_Win_unlock(0, win);
-    }
-    MPI_Win_free(&win);
-  }
+  // deprecated
+  // template <typename T> void mpiPull(T *sendbuf, T *recvbuf, int count) {
+  //   MPI_Win win;
+  //   MPI_Win_create(sendbuf, count * sizeof(T), sizeof(T), MPI_INFO_NULL,
+  //                  mpi_comm, &win);
+  //   if (mpi_rank != 0) {
+  //     MPI_Win_lock(MPI_LOCK_SHARED, 0, 0, win);
+  //
+  //     MPI_Get(recvbuf, count, getMPIDataType<T>(), 0, 0, count,
+  //             getMPIDataType<T>(), win);
+  //
+  //     MPI_Win_unlock(0, win);
+  //   }
+  //   MPI_Win_free(&win);
+  // }
 
   // deprecated
   template <typename T>
@@ -156,26 +159,26 @@ public:
     }
   }
 
-  // template<typename T>
-  // void mpiPull(T* sendbuf, T* recvbuf, int count, int tag) {
-  //   if (mpi_rank == 0) {
-  //     for(int i = 1; i < mpi_size; i++) {
-  //         int request;
-  //         MPI_Status mpi_status;
-  //         MPI_Recv(&request, 1, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG,
-  //         MPI_COMM_WORLD, &mpi_status);
+  template <typename T>
+  void mpiPull(T *sendbuf, T *recvbuf, int count, int tag) {
+    if (mpi_rank == 0) {
+      for (int i = 1; i < mpi_size; i++) {
+        int request;
+        MPI_Status mpi_status;
+        MPI_Recv(&request, 1, MPI_INT, MPI_ANY_SOURCE, tag, mpi_comm_pull,
+                 &mpi_status);
 
-  //         MPI_Send(sendbuf, count, getMPIDataType<T>(), request,
-  //         mpi_status.MPI_TAG, MPI_COMM_WORLD);
-  //       }
-  //   } else {
-  //       // 非rank0节点发送数据请求
-  //       MPI_Send(&mpi_rank, 1, MPI_INT, 0, tag, MPI_COMM_WORLD);
-  //       // 接收来自rank0的数据
-  //       MPI_Recv(recvbuf, count, getMPIDataType<T>(), 0, tag, MPI_COMM_WORLD,
-  //       MPI_STATUS_IGNORE);
-  //   }
-  // }
+        MPI_Send(sendbuf, count, getMPIDataType<T>(), request, tag,
+                 mpi_comm_pull);
+      }
+    } else {
+      // 非rank0节点发送数据请求
+      MPI_Send(&mpi_rank, 1, MPI_INT, 0, tag, mpi_comm_pull);
+      // 接收来自rank0的数据
+      MPI_Recv(recvbuf, count, getMPIDataType<T>(), 0, tag, mpi_comm_pull,
+               MPI_STATUS_IGNORE);
+    }
+  }
 
   template <typename T>
   void mpiBcast(std::vector<T> &sendbuf, int count, int root) {
@@ -198,7 +201,7 @@ public:
 
       while (cnt < mpi_size - 1) {
         MPI_Recv(tmp_recvbuf, count, getMPIDataType<T>(), MPI_ANY_SOURCE, tag,
-                 mpi_comm, MPI_STATUS_IGNORE);
+                 mpi_comm_push, MPI_STATUS_IGNORE);
 
         cnt++;
         for (int i = 0; i < count; i++) {
@@ -206,7 +209,7 @@ public:
         }
       }
     } else {
-      MPI_Send(sendbuf, count, getMPIDataType<T>(), 0, tag, mpi_comm);
+      MPI_Send(sendbuf, count, getMPIDataType<T>(), 0, tag, mpi_comm_push);
     }
   }
 
@@ -293,18 +296,22 @@ public:
   }
 
   template <typename T>
-  void mpiReduce(T *sendbuf, T *recvbuf, int count, const MPI_Op &op,
-                 int root) {
-    MPI_Reduce(sendbuf, recvbuf, count, getMPIDataType<T>(), op, root,
-               mpi_comm);
+  void mpiAllreduce(T *sendbuf, T *recvbuf, int count, const MPI_Op &op) {
+    MPI_Allreduce(sendbuf, recvbuf, count, getMPIDataType<T>(), op, mpi_comm);
   }
 
-  void mpiFinalize() { MPI_Finalize(); };
+  void mpiFinalize() {
+    MPI_Comm_free(&mpi_comm_pull);
+    MPI_Comm_free(&mpi_comm_push);
+    MPI_Finalize();
+  };
 
 private:
   int mpi_rank;
   int mpi_size;
   MPI_Comm mpi_comm;
+  MPI_Comm mpi_comm_pull;
+  MPI_Comm mpi_comm_push;
   int _global_done_rank_num;
 };
 
